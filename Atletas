@@ -1,0 +1,134 @@
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <numeric>
+
+using namespace std;
+
+// Definimos la estructura del atleta
+struct Atleta {
+    string nombre;
+    int numero;
+    vector<double> tiempos;
+};
+
+// Definimos la estructura del nodo del árbol
+struct Nodo {
+    double promedio;
+    Atleta atleta;
+    Nodo* izquierda;
+    Nodo* derecha;
+};
+
+// Función para insertar un nodo en el árbol
+void insertarNodo(Nodo*& raiz, double promedio, Atleta atleta) {
+    if (raiz == nullptr) {
+        raiz = new Nodo;
+        raiz->promedio = promedio;
+        raiz->atleta = atleta;
+        raiz->izquierda = nullptr;
+        raiz->derecha = nullptr;
+    } else if (promedio < raiz->promedio) {
+        insertarNodo(raiz->izquierda, promedio, atleta);
+    } else {
+        insertarNodo(raiz->derecha, promedio, atleta);
+    }
+}
+
+// Función para recorrer el árbol en orden y mostrar los promedios de menor a mayor
+void recorrerArbol(Nodo* raiz) {
+    if (raiz != nullptr) {
+        recorrerArbol(raiz->izquierda);
+        cout << raiz->atleta.nombre << ": " << raiz->promedio << endl;
+        recorrerArbol(raiz->derecha);
+    }
+}
+
+int main() {
+    // Creamos un vector de atletas
+    vector<Atleta> atletas;
+
+    // Creamos un árbol vacío
+    Nodo* raiz = nullptr;
+
+    // Creamos una variable para almacenar la opción seleccionada por el usuario
+    int opcion;
+
+    // Bucle principal del programa
+    while (true) {
+        // Mostramos el menú de opciones
+        cout << "Seleccione una opción:" << endl;
+        cout << "1. Ingresar datos del atleta" << endl;
+        cout << "2. Mostrar promedio de las vueltas" << endl;
+        cout << "3. Mostrar datos de menor promedio a mayor" << endl;
+        cout << "4. Salir" << endl;
+        cout << "Opción: ";
+        cin >> opcion;
+
+        // Procesamos la opción seleccionada por el usuario
+        if (opcion == 1) {
+            // Solicitamos los datos del atleta
+            string nombre;
+            int numero;
+            cout << "Ingrese el nombre del atleta: ";
+            cin >> nombre;
+            cout << "Ingrese el número asignado al atleta: ";
+            cin >> numero;
+
+            // Creamos un nuevo atleta y lo agregamos al vector
+            Atleta atleta;
+            atleta.nombre = nombre;
+            atleta.numero = numero;
+            atletas.push_back(atleta);
+
+            // Solicitamos los tiempos del atleta
+            double tiempo;
+            while (true) {
+                cout << "Ingrese el tiempo del atleta en la vuelta (o 0 para terminar): ";
+                cin >> tiempo;
+                if (tiempo == 0) {
+                    break;
+                }
+                atletas.back().tiempos.push_back(tiempo);
+            }
+
+            // Calculamos el promedio de los tiempos del atleta
+            if (atletas.back().tiempos.size() >= 2) {
+                double promedio = accumulate(atletas.back().tiempos.begin(), atletas.back().tiempos.end(), 0.0) / atletas.back().tiempos.size();
+                insertarNodo(raiz, promedio, atletas.back());
+            }
+        } else if (opcion == 2) {
+            // Solicitamos el nombre o número del atleta
+            string nombre;
+            int numero;
+            cout << "Ingrese el nombre o número del atleta: ";
+            cin >> nombre;
+
+            // Buscamos el atleta en el vector
+            auto it = find_if(atletas.begin(), atletas.end(), [&](const Atleta& a) {
+                return a.nombre == nombre || a.numero == stoi(nombre);
+            });
+
+            // Si encontramos el atleta, calculamos su promedio de tiempos
+            if (it != atletas.end() && it->tiempos.size() >= 2) {
+                double promedio = accumulate(it->tiempos.begin(), it->tiempos.end(), 0.0) / it->tiempos.size();
+                cout << "El promedio de tiempos del atleta " << it->nombre << " es: " << promedio << endl;
+            } else {
+                cout << "No se encontró el atleta o no tiene suficientes tiempos registrados." << endl;
+            }
+        } else if (opcion == 3) {
+            // Mostramos los datos de menor promedio a mayor
+            recorrerArbol(raiz);
+        } else if (opcion == 4) {
+            // Salimos del bucle principal
+            break;
+        } else {
+            // Opción inválida
+            cout << "Opción inválida. Intente de nuevo." << endl;
+        }
+    }
+
+    return 0;
+}
